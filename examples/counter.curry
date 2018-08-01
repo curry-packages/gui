@@ -3,7 +3,6 @@
 ------------------------------------------------------------------------------
 
 import GUI
-import Read
 
 counterGUI =
  Col [] [
@@ -14,7 +13,6 @@ counterGUI =
            Button exitGUI                    [Text "Stop"]]]
      where val free
 
-           incrText s = show (readInt s + 1)
+           incrText s = show (read s + 1)
 
 main = runGUI "Counter Demo" counterGUI
-

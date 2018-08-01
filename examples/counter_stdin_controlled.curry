@@ -7,9 +7,8 @@
 -- you need version 3.8.5 (or newer) to execute this program
 -- (without "segmentation violation")
 
-import IO
+import System.IO
 import GUI
-import Read
 
 -- The definition of the counter GUI together with a handler
 -- "ext_handler" that is responsible to handle the external messages:
@@ -25,7 +24,7 @@ counterGUI =
  where
    val free
 
-   incrText s = show (readInt s + 1)
+   incrText s = show (read s + 1)
 
    ext_handler h gp = do
      l <- hGetLine h
@@ -38,4 +37,3 @@ main = do
   putStrLn "Input numbers (one per line) to be shown in the Counter GUI:"
   putStrLn "(to terminate the application, input \"stop\")"
   runHandlesControlledGUI "Counter Demo" counterGUI [stdin]
-

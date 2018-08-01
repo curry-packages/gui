@@ -4,7 +4,6 @@
 ------------------------------------------------------------------------------
 
 import GUI
-import Read
 
 counterGUI =
  Col [] [
@@ -28,9 +27,8 @@ counterGUI =
  where
    val,txt,stopbutton free
 
-   decrText s = show (readInt s - 1)
+   decrText s = show (read s - 1)
 
-   incrText s = show (readInt s + 1)
+   incrText s = show (read s + 1)
 
 main = runGUI "Event Demo" counterGUI
-

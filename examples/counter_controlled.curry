@@ -9,7 +9,6 @@
 
 import Ports
 import GUI
-import Read
 
 -- The messages that can be sent to the counter GUI:
 data Msg = Set Int
@@ -26,7 +25,7 @@ counter_gui =
 
      where val free
 
-           incrText s = show (readInt s + 1)
+           incrText s = show (read s + 1)
 
            ext_handler (Set v) gp = setValue val (show v) gp
 
@@ -41,4 +40,3 @@ main =
 client i =
  do p <- connectPort "test@localhost"
     doSend (Set i) p
-

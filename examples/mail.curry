@@ -1,7 +1,7 @@
 -- a simple mail widget to write and send an email
 
 import GUI
-import System
+import System.Process
 
 mailWidget =
  Col [] [
@@ -28,5 +28,3 @@ mailWidget =
 
 
 main = runGUI "Mail Demo" mailWidget
-
-

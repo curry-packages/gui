@@ -1,7 +1,6 @@
 -- a simple counter GUI to demonstrate the use of menu buttons
 
 import GUI
-import Read
 
 counterGUI =
  Col [] [
@@ -32,7 +31,6 @@ counterGUI =
 
    setTo n gport = setValue val (show n) gport >> return []
 
-incrText s = show (readInt s + 1)
+incrText s = show (read s + 1)
 
 main = runGUI "Counter Demo with Menu" counterGUI
-

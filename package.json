@@ -4,7 +4,10 @@
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "Libraries for programming graphical user interfaces",
     "category": [ "User Interface" ],
-    "dependencies": { },
+    "dependencies": { ,
+        "base" : ">= 2.0.0"
+        
+    },
     "exportedModules": [ "GUI" ],
     "compilerCompatibility": {
         "pakcs": ">= 2.0.0",

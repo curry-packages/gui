@@ -3,8 +3,8 @@
 -- with a "plotter" object which directly writes to a GUI canvas:
 
 
-import GUI
-import IOExts
+import Data.IORef
+import Graphics.UI
 
 ---------------------------------------------------------------------
 -- An implementation of a plotter.

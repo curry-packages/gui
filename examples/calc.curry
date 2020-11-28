@@ -1,8 +1,8 @@
 -- A simple desk calculator GUI where the local state is stored in an IORef.
 
-import GUI
-import Char
-import IOExts -- use IORefs for the GUI state 
+import Data.Char
+import Data.IORef -- use IORefs for the GUI state 
+import Graphics.UI
 
 -- the GUI needs a reference to the calculator state
 calcGUI :: IORef (Int,Int->Int) -> Widget
@@ -35,6 +35,7 @@ processButton b (d,f)
  | b=='=' = (f d, id)
  | b=='C' = (0, id)
 
+main :: IO ()
 main = do
   stateref <- newIORef (0,id)
   runGUI "Calculator" (calcGUI stateref)

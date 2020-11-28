@@ -1,7 +1,7 @@
 -- Drawing Sierpinski curves in a canvas GUI
 
-import GUI
-import IOExts
+import Data.IORef
+import Graphics.UI
 
 ---------------------------------------------------------------------
 -- An implementation of a plotter.
@@ -39,11 +39,11 @@ data FigureType stroketype = Figure (FigureType stroketype) stroketype
 
 drawSierpinski p order (Figure f1 s1 f2 s2 f3 s3 f4) =
   if order==0
-  then done
-  else drawSierpinski p (order -1) f1 >> s1 p >>
-       drawSierpinski p (order -1) f2 >> s2 p >>
-       drawSierpinski p (order -1) f3 >> s3 p >>
-       drawSierpinski p (order -1) f4
+    then return ()
+    else drawSierpinski p (order -1) f1 >> s1 p >>
+         drawSierpinski p (order -1) f2 >> s2 p >>
+         drawSierpinski p (order -1) f3 >> s3 p >>
+         drawSierpinski p (order -1) f4
 
 
 fa = Figure fa rightdown fb right2 fd rightup   fa

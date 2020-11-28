@@ -5,33 +5,35 @@
 --- [in this paper](http://www.informatik.uni-kiel.de/~mh/papers/PADL00.html)
 ---
 --- @authors Michael Hanus, Bernd Brassel
---- @version January 2017
---- @category general
+--- @version November 2020
 ------------------------------------------------------------------------------
 
-module GUI(GuiPort,Widget(..),Button,ConfigButton,
-           TextEditScroll,ListBoxScroll,CanvasScroll,EntryScroll,
-           ConfItem(..),ReconfigureItem(..),
-           Cmd,Command,Event(..),ConfCollection(..),MenuItem(..),
-           CanvasItem(..),WidgetRef, Style(..), Color(..),
-           col,row,matrix,
-           runGUI,runGUIwithParams,runInitGUI,runInitGUIwithParams,
-           runPassiveGUI,
-           runControlledGUI,runConfigControlledGUI,runInitControlledGUI,
-           runHandlesControlledGUI,runInitHandlesControlledGUI,
-           exitGUI,getValue,setValue,updateValue,appendValue,
-           appendStyledValue,addRegionStyle,removeRegionStyle,
-           getCursorPosition,seeText,
-           focusInput,addCanvas,setConfig,
-           getOpenFile,getOpenFileWithTypes,getSaveFile,getSaveFileWithTypes,
-           chooseColor,popupMessage,debugTcl)  where
+module Graphics.UI
+  ( GuiPort, Widget(..), Button, ConfigButton
+  , TextEditScroll, ListBoxScroll, CanvasScroll, EntryScroll
+  , ConfItem(..), ReconfigureItem(..)
+  , Cmd, Command, Event(..), ConfCollection(..), MenuItem(..)
+  , CanvasItem(..), WidgetRef,  Style(..),  Color(..)
+  , col, row, matrix
+  , runGUI, runGUIwithParams, runInitGUI, runInitGUIwithParams
+  , runPassiveGUI
+  , runControlledGUI, runConfigControlledGUI, runInitControlledGUI
+  , runHandlesControlledGUI, runInitHandlesControlledGUI
+  , exitGUI, getValue, setValue, updateValue, appendValue
+  , appendStyledValue, addRegionStyle, removeRegionStyle
+  , getCursorPosition, seeText
+  , focusInput, addCanvas, setConfig
+  , getOpenFile, getOpenFileWithTypes, getSaveFile, getSaveFileWithTypes
+  , chooseColor, popupMessage, debugTcl
+  ) where
 
-import Char   (isSpace, toUpper)
-import IO
-import IOExts (connectToCommand)
-import Read
-import System (system)
-import Unsafe (trace)
+import Control.Monad  ( when )
+import Data.Char      ( isSpace, toUpper )
+import Debug.Trace    ( trace )
+import System.IO
+
+import System.IOExts  ( connectToCommand )
+import System.Process ( system )
 
 -- If showTclTkErrors is true, all synchronization errors occuring in the
 -- Tcl/Tk communication are shown (such errors should only occur on
@@ -613,11 +615,11 @@ confCollection2tcl (BottomAlign : confs) = "-sticky s " ++ confCollection2tcl co
 gridInfo2tcl :: Int -> String -> String -> [ConfItem] -> String
 gridInfo2tcl n label "col" confs 
   | any isFill confs || (any isFillX confs && any isFillY confs)
-  = "-sticky nsew \ngrid columnconfigure "++lab++" "++show n++
-    " -weight 1\ngrid rowconfigure "++lab++" 1 -weight 1"
-  | any isFillX confs = "-sticky we \ngrid columnconfigure "++lab++
-                        " "++show n++" -weight 1"
-  | any isFillY confs = "-sticky ns \ngrid rowconfigure "++lab++
+  = "-sticky nsew \ngrid columnconfigure " ++ lab ++ " " ++ show n ++ 
+    " -weight 1\ngrid rowconfigure " ++ lab ++ " 1 -weight 1"
+  | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
+                        " " ++ show n ++ " -weight 1"
+  | any isFillY confs = "-sticky ns \ngrid rowconfigure " ++ lab ++ 
                         " 1 -weight 1"
   | otherwise = ""
   where
@@ -625,12 +627,12 @@ gridInfo2tcl n label "col" confs
 
 gridInfo2tcl n label "row" confs 
   | any isFill confs || (any isFillX confs && any isFillY confs)
-  = "-sticky nsew \ngrid columnconfigure "++lab++
-    " 1 -weight 1\ngrid rowconfigure "++lab++" "++show n++" -weight 1"
-  | any isFillX confs = "-sticky we \ngrid columnconfigure "++lab++
+  = "-sticky nsew \ngrid columnconfigure " ++ lab ++ 
+    " 1 -weight 1\ngrid rowconfigure " ++ lab ++ " " ++ show n ++ " -weight 1"
+  | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
                         " 1 -weight 1"
-  | any isFillY confs =  "-sticky ns \ngrid rowconfigure "++lab++
-                         " "++show n++" -weight 1"
+  | any isFillY confs =  "-sticky ns \ngrid rowconfigure " ++ lab ++ 
+                         " " ++ show n ++ " -weight 1"
   | otherwise = ""
   where
     lab = if label=="" then "." else label
@@ -649,26 +651,28 @@ config2tcl :: String -> String -> ConfItem -> String
 config2tcl wtype label (Active active) =
   if wtype=="button" || wtype=="checkbutton" || wtype=="entry" ||
      wtype=="menubutton" || wtype=="scale" || wtype=="textedit"
-  then if active
-       then label++" configure -state normal\n"
-       else label++" configure -state disabled\n"
-  else trace ("WARNING: GUI.Active ignored for widget type \""++wtype++"\"\n") ""
+    then if active
+           then label ++ " configure -state normal\n"
+           else label ++ " configure -state disabled\n"
+    else trace ("WARNING: GUI.Active ignored for widget type \"" ++
+                wtype ++ "\"\n") ""
 
 -- alignment of information inside a widget
 -- argument must be: n, ne, e, se, s, sw, w, nw, or center
 config2tcl wtype label (Anchor align) =
   if wtype=="button" || wtype=="checkbutton" || wtype=="label" ||
      wtype=="menubutton" || wtype=="message"
-  then label++" configure -anchor "++align++"\n"
-  else trace ("WARNING: GUI.Anchor ignored for widget type \""++wtype++"\"\n") ""
+    then label ++ " configure -anchor " ++ align ++ "\n"
+    else trace ("WARNING: GUI.Anchor ignored for widget type \"" ++
+                wtype ++ "\"\n") ""
 
 -- background color:
 config2tcl _ label (Background color)
- = label++" configure -background \""++color++"\"\n"
+ = label ++ " configure -background \"" ++ color ++ "\"\n"
 
 -- foreground color:
 config2tcl _ label (Foreground color)
- = label++" configure -foreground \""++color++"\"\n"
+ = label ++ " configure -foreground \"" ++ color ++ "\"\n"
 
 -- command associated to various widgets:
 config2tcl wtype label (Handler evtype _)
@@ -1172,7 +1176,7 @@ configAndProceedScheduler :: [(String,Event,GuiPort -> IO [ReconfigureItem])]
   -> GuiPort -> [ExternalHandler] -> Maybe [ReconfigureItem] -> IO ()
 configAndProceedScheduler _ gport _ Nothing = closeGuiPort gport
 configAndProceedScheduler evs gport exths (Just configs) = do
-  mapIO_ reconfigureGUI configs
+  mapM_ reconfigureGUI configs
   scheduleTkEvents (configEventHandlers evs configs) gport
                    (configStreamHandlers exths configs)
  where
@@ -1254,7 +1258,7 @@ getWidgetVarMsg var gport =
   receiveFromTk gport >>= \varmsg ->
   if takeWhile (/='%') varmsg == ":VAR"++var
   then let (len,value) = break (=='*') (tail (dropWhile (/='%') varmsg))
-        in getWidgetVarValue (readNat len) (tail value) gport
+        in getWidgetVarValue (read len) (tail value) gport
   else do reportTclTkError ("ERROR in getWidgetVar \""++var++"\": Received: "
                             ++varmsg++"\n")
           getWidgetVarMsg var gport -- ignore other messages and try again
@@ -1381,7 +1385,7 @@ getCursorPosition (WRefLabel var wtype) gport =
   else do send2tk ("puts [ "++wRefname2Label var++" index insert ]") gport
           line <- receiveFromTk gport
           let (ls,ps) = break (=='.') line
-          return (if null ps then (0,0) else (readNat ls, readNat (tail ps)))
+          return (if null ps then (0,0) else (read ls, read (tail ps)))
 
 
 --- Adjust the view of a TextEdit widget so that the specified line/column
@@ -1544,5 +1548,9 @@ chooseColor = do
   exitGUI gport
   return color
 
+----------------------------------------------------------------------------
+-- Auxiliaries:
+done :: IO ()
+done = return ()
 
 -- end of GUI library

@@ -1,15 +1,15 @@
 {
     "name": "gui",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "Libraries for programming graphical user interfaces",
     "category": [ "User Interface" ],
-    "dependencies": { },
-    "exportedModules": [ "GUI" ],
-    "compilerCompatibility": {
-        "pakcs": ">= 2.0.0, < 3.0.0",
-        "kics2": ">= 2.0.0, < 3.0.0"
+    "dependencies": {
+        "base"      : ">= 3.0.0, < 4.0.0",
+        "io-extra"  : ">= 3.0.0, < 4.0.0",
+        "process"   : ">= 3.0.0, < 4.0.0"
     },
+    "exportedModules": [ "GUI" ],
     "license": "BSD-3-Clause",
     "licenseFile": "LICENSE",
     "source": {

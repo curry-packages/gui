@@ -2,9 +2,9 @@
 -- A simple counter demo for the GUI library
 ------------------------------------------------------------------------------
 
-import GUI
-import Read
+import Graphics.UI
 
+counterGUI :: Widget
 counterGUI =
  Col [] [
    Label [Text "A simple counter:"],
@@ -14,7 +14,8 @@ counterGUI =
            Button exitGUI                    [Text "Stop"]]]
      where val free
 
-           incrText s = show (readInt s + 1)
+           incrText s = show (read s + 1)
 
+main :: IO ()
 main = runGUI "Counter Demo" counterGUI
 

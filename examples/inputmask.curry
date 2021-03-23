@@ -1,12 +1,11 @@
 -- This program is a demo of the Matrix construct
 -- A Matrix is useful, when widgets should oriented in a table-like style.
 
-import GUI
-import Read
-import ReadShowTerm
-import IOExts
+import Graphics.UI
+import System.IO
 
 data Person = Person String String String String String String String String 
+ deriving (Read,Show)
 
 widget (Person name1 fname1 uni1 city1 street1 nr1 zip1 country1) noe =
  Col [LeftAlign] [
@@ -62,7 +61,7 @@ widget (Person name1 fname1 uni1 city1 street1 nr1 zip1 country1) noe =
                              [WidgetConf nextbutton (Active True)]
 
        getPerson f wp = readFile pFile >>= \fileconts ->
-                        let persons = map readQTerm (lines fileconts) in
+                        let persons = map read (lines fileconts) in
                         getValue nrlab wp >>= \nrlab_cont ->
                         return $ persons !! (f (readNat nrlab_cont) -1)
                
@@ -96,19 +95,19 @@ widget (Person name1 fname1 uni1 city1 street1 nr1 zip1 country1) noe =
                                      zip_cont country_cont 
                  in
                  if number > readNat noe_cont
-                   then appendFile pFile (showQTerm person ++ "\n")
-                   else readCompleteFile pFile >>= \conts ->
+                   then appendFile pFile (show person ++ "\n")
+                   else openFile pFile ReadMode >>= hGetContents >>= \conts ->
                         let ls = lines conts in 
                         writeFile pFile 
                           (unlines (take (number - 1) ls ++ 
-                                   [showQTerm person] ++ 
+                                   [show person] ++ 
                                     drop number ls))
 
        new wp = getValue nrOfEntries wp >>= \noe_cont ->
                 let max = readNat noe_cont in
                 setValue nrOfEntries (show $ max+1) wp >>
                 setPerson (\_->max+1) empty wp >>
-                appendFile pFile (showQTerm empty ++ "\n") >>
+                appendFile pFile (show empty ++ "\n") >>
                 return [WidgetConf prevbutton (Active True),
                         WidgetConf nextbutton (Active False)]
              
@@ -116,15 +115,17 @@ main = appendFile pFile "" >>
        readFile pFile >>= \conts ->
        let exists = conts/="" in
        (if not exists 
-         then writeFile pFile (unlines (map showQTerm someCurryHeroes)) >>
+         then writeFile pFile (unlines (map show someCurryHeroes)) >>
               return someCurryHeroes
-         else return (map readQTerm (lines conts))) >>= \persons ->
+         else return (map read (lines conts))) >>= \persons ->
        let person = head persons 
            nrOfEntries = length persons 
        in
        runGUI "A simple Entry Form in table Style" $ 
               widget person nrOfEntries
 
+readNat :: String -> Int
+readNat = read
 
 pFile = "tmp.matrixdemodata" 
 

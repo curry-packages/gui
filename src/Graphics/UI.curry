@@ -613,29 +613,30 @@ confCollection2tcl (BottomAlign : confs) = "-sticky s " ++ confCollection2tcl co
 
 -- translate the Fill - options to sticky options and grid configures
 gridInfo2tcl :: Int -> String -> String -> [ConfItem] -> String
-gridInfo2tcl n label "col" confs 
-  | any isFill confs || (any isFillX confs && any isFillY confs)
-  = "-sticky nsew \ngrid columnconfigure " ++ lab ++ " " ++ show n ++ 
-    " -weight 1\ngrid rowconfigure " ++ lab ++ " 1 -weight 1"
-  | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
-                        " " ++ show n ++ " -weight 1"
-  | any isFillY confs = "-sticky ns \ngrid rowconfigure " ++ lab ++ 
-                        " 1 -weight 1"
-  | otherwise = ""
-  where
-    lab = if label=="" then "." else label
-
-gridInfo2tcl n label "row" confs 
-  | any isFill confs || (any isFillX confs && any isFillY confs)
-  = "-sticky nsew \ngrid columnconfigure " ++ lab ++ 
-    " 1 -weight 1\ngrid rowconfigure " ++ lab ++ " " ++ show n ++ " -weight 1"
-  | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
-                        " 1 -weight 1"
-  | any isFillY confs =  "-sticky ns \ngrid rowconfigure " ++ lab ++ 
-                         " " ++ show n ++ " -weight 1"
-  | otherwise = ""
-  where
-    lab = if label=="" then "." else label
+gridInfo2tcl n label colrow confs
+  | colrow == "col" = gridColInfo2tcl (if null label then "." else label)
+  | colrow == "row" = gridRowInfo2tcl (if null label then "." else label)
+  | otherwise       = ""
+ where
+  gridColInfo2tcl lab
+    | any isFill confs || (any isFillX confs && any isFillY confs)
+    = "-sticky nsew \ngrid columnconfigure " ++ lab ++ " " ++ show n ++ 
+      " -weight 1\ngrid rowconfigure " ++ lab ++ " 1 -weight 1"
+    | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
+                          " " ++ show n ++ " -weight 1"
+    | any isFillY confs = "-sticky ns \ngrid rowconfigure " ++ lab ++ 
+                          " 1 -weight 1"
+    | otherwise = ""
+  
+  gridRowInfo2tcl lab
+    | any isFill confs || (any isFillX confs && any isFillY confs)
+    = "-sticky nsew \ngrid columnconfigure " ++ lab ++ 
+      " 1 -weight 1\ngrid rowconfigure " ++ lab ++ " " ++ show n ++ " -weight 1"
+    | any isFillX confs = "-sticky we \ngrid columnconfigure " ++ lab ++ 
+                          " 1 -weight 1"
+    | any isFillY confs =  "-sticky ns \ngrid rowconfigure " ++ lab ++ 
+                           " " ++ show n ++ " -weight 1"
+    | otherwise = ""
 
 -- translate a single configuration option into Tcl/Tk commands
 -- to configure the widget:
@@ -736,8 +737,8 @@ config2tcl wtype label (List l)
 -- items in a menu button:
 config2tcl wtype label (Menu l)
  | wtype=="menubutton"
-   = label++" configure -menu "++label++".a\n" ++
-     menu2tcl (label++".a") l
+ = label++" configure -menu "++label++".a\n" ++
+   menu2tcl (label++".a") l
  | otherwise
  = trace ("WARNING: GUI.Menu ignored for widget type \""++wtype++"\"\n") ""
 
@@ -747,12 +748,12 @@ config2tcl wtype label (WRef r)
 
 -- initial text value of widgets:
 config2tcl wtype label (Text s)
- | wtype=="canvas"
-   = trace "WARNING: GUI.Text ignored for Canvas\n" ""
- | wtype=="checkbutton"
-   = label++" configure -text \""++escapeTcl s++"\"\n"
- | otherwise
-   = "setvar"++wLabel2Refname label++" \""++escapeTcl s++"\"\n"
+  | wtype=="canvas"
+  = trace "WARNING: GUI.Text ignored for Canvas\n" ""
+  | wtype=="checkbutton"
+  = label++" configure -text \""++escapeTcl s++"\"\n"
+  | otherwise
+  = "setvar"++wLabel2Refname label++" \""++escapeTcl s++"\"\n"
 
 -- width of a widget:
 config2tcl wtype label (Width w)
@@ -902,12 +903,10 @@ debugTcl widget = putStrLn (fst (mainWidget2tcl widget))
 ------------------------------------------------------------------------
 
 reportTclTk :: String -> IO ()
-reportTclTk s =
- if showTclTkCommunication then hPutStrLn stdout s else done
+reportTclTk s = when showTclTkCommunication $ hPutStrLn stdout s
 
 reportTclTkError :: String -> IO ()
-reportTclTkError s =
- if showTclTkErrors then hPutStrLn stderr s else done
+reportTclTkError s = when showTclTkErrors $ hPutStrLn stderr s
 
 -- Open a GUI port by connecting to new "wish" process.
 -- The first argument are parameters passed to the wish command.
@@ -916,8 +915,8 @@ openGuiPort wishparams = do
   exwish <- system "which wish > /dev/null"
   when (exwish>0) $
     error "Windowing shell `wish' not found. Please install package `tk'!"
-  reportTclTk ("OPEN CONNECTION TO WISH WITH PARAMS: "++wishparams)
-  tclhdl <- connectToCommand ("wish "++wishparams)
+  reportTclTk $ "OPEN CONNECTION TO WISH WITH PARAMS: " ++ wishparams
+  tclhdl <- connectToCommand ("wish " ++ wishparams)
   return (GuiPort tclhdl)
 
 -- Send a string (Tcl/Tk command) to GUI port:
@@ -931,14 +930,15 @@ send2tk s (GuiPort tclhdl) = do
 receiveFromTk :: GuiPort -> IO String
 receiveFromTk (GuiPort tclhdl) = do
   s <- hGetLine tclhdl
-  reportTclTk ("GUI RECEIVED: "++s)
+  reportTclTk $ "GUI RECEIVED: " ++ s
   return s
 
 -- Choice over the output of the wish process and handles to input streams:
 choiceOverHandles :: [Handle] -> IO (Int,Handle)
 choiceOverHandles hdls = do
-  i <- hWaitForInputs hdls (-1)
-  return (i,hdls!!i)
+  i <- if length hdls == 1 then return 0
+                           else hWaitForInputs hdls (-1)
+  return (i, hdls!!i)
 
 -- Close connection to wish process:
 closeGuiPort :: GuiPort -> IO ()
@@ -1122,14 +1122,14 @@ data ExternalHandler =
 
 -- start the scheduler (see below) with a given Widget on a wish port
 -- and an initial command:
-initSchedule :: Widget -> GuiPort -> [ExternalHandler] ->
-                (GuiPort -> IO [ReconfigureItem]) -> IO ()
+initSchedule :: Widget -> GuiPort -> [ExternalHandler]
+             -> (GuiPort -> IO [ReconfigureItem]) -> IO ()
 initSchedule widget gport exths initcmd = do
   send2tk tcl gport
   confs <- initcmd gport
   -- add handler on wish connection as first handler:
   configAndProceedScheduler evs gport
-                   (IOHandler (handleOf gport,processTkEvent) : exths) 
+                   (IOHandler (handleOf gport, processTkEvent) : exths) 
                    (Just confs)
  where
   (tcl,evs) = mainWidget2tcl widget
@@ -1145,7 +1145,7 @@ scheduleTkEvents :: [EventHandler] -> GuiPort -> [ExternalHandler] -> IO ()
 -- schedule GUI with handler for external port:
 scheduleTkEvents evs gport exthds = do
   (i,hdl) <- choiceOverHandles (map fst iohandlers)
-  if i<0 then done
+  if i<0 then return ()
          else snd (iohandlers!!i) evs hdl gport >>=
               configAndProceedScheduler evs gport exthds 
  where
@@ -1154,19 +1154,22 @@ scheduleTkEvents evs gport exthds = do
 -- process an event from the wish and return the new configuration items:
 processTkEvent :: [EventHandler] -> Handle -> GuiPort
                -> IO (Maybe [ReconfigureItem])
-processTkEvent evs str gport =
-  hIsEOF str >>= \eof ->
-  if eof then return Nothing -- connection closed (by wish)
-  else do
-   ans <- hGetLine str
-   reportTclTk ("GUI RECEIVED: "++ans)
-   if (take 4 ans)==":EVT"
-    then do let (evwidget,evtype) = break (==' ') (drop 4 ans)
-            configs <- selectEvent evwidget evtype evs gport
-            return (Just configs)
-    else do reportTclTkError("ERROR in scheduleTkEvents: Received: "++ans++"\n")
-            -- ignore other outputs:
-            return (Just [])
+processTkEvent evs str gport = do
+  eof <- hIsEOF str
+  if eof
+    then do
+      reportTclTk "Connection closed (by wish)"
+      return Nothing
+    else do
+      ans <- hGetLine str
+      reportTclTk ("GUI RECEIVED: "++ans)
+      if take 4 ans == ":EVT"
+       then do let (evwidget,evtype) = break (==' ') (drop 4 ans)
+               configs <- selectEvent evwidget evtype evs gport
+               return (Just configs)
+       else do reportTclTkError $ "ERROR in scheduleTkEvents: Received: " ++ ans
+               -- ignore other outputs:
+               return (Just [])
 
 
 -- Reconfigure scheduler with new configurations and proceed.
@@ -1174,15 +1177,15 @@ processTkEvent evs str gport =
 -- (this case occurs of the connection is closed by wish)
 configAndProceedScheduler :: [(String,Event,GuiPort -> IO [ReconfigureItem])]
   -> GuiPort -> [ExternalHandler] -> Maybe [ReconfigureItem] -> IO ()
-configAndProceedScheduler _ gport _ Nothing = closeGuiPort gport
+configAndProceedScheduler _   gport _     Nothing        = closeGuiPort gport
 configAndProceedScheduler evs gport exths (Just configs) = do
   mapM_ reconfigureGUI configs
   scheduleTkEvents (configEventHandlers evs configs) gport
                    (configStreamHandlers exths configs)
  where
-  reconfigureGUI (WidgetConf r ci) = setConfig r ci gport
-  reconfigureGUI (StreamHandler _ _) = done
-  reconfigureGUI (RemoveStreamHandler _) = done
+  reconfigureGUI (WidgetConf r ci)       = setConfig r ci gport
+  reconfigureGUI (StreamHandler _ _)     = return ()
+  reconfigureGUI (RemoveStreamHandler _) = return ()
 
 configEventHandlers
   :: [(String,Event,GuiPort -> IO [ReconfigureItem])]
@@ -1260,7 +1263,7 @@ getWidgetVarMsg var gport =
   then let (len,value) = break (=='*') (tail (dropWhile (/='%') varmsg))
         in getWidgetVarValue (read len) (tail value) gport
   else do reportTclTkError ("ERROR in getWidgetVar \""++var++"\": Received: "
-                            ++varmsg++"\n")
+                            ++varmsg)
           getWidgetVarMsg var gport -- ignore other messages and try again
 
 getWidgetVarValue :: Int -> String -> GuiPort -> IO String
@@ -1268,9 +1271,8 @@ getWidgetVarValue len valmsg gport =
   if length valmsg < len
   then do remvalmsg <- getWidgetVarRemValue (len - (length valmsg + 1)) gport
           return (valmsg++"\n"++remvalmsg)
-  else do if length valmsg > len
-            then reportTclTkError ("ERROR in getWidgetVar: answer too short\n")
-            else done
+  else do when (length valmsg > len) $
+            reportTclTkError ("ERROR in getWidgetVar: answer too short")
           return valmsg
 
 getWidgetVarRemValue :: Int -> GuiPort -> IO String
@@ -1279,9 +1281,8 @@ getWidgetVarRemValue len gport =
   if length valmsg < len
   then getWidgetVarRemValue (len - (length valmsg + 1)) gport >>= \remvalmsg ->
        return (valmsg++"\n"++remvalmsg)
-  else do if length valmsg > len
-            then reportTclTkError ("ERROR in getWidgetVar: answer too short\n")
-            else done
+  else do when (length valmsg > len) $
+            reportTclTkError ("ERROR in getWidgetVar: answer too short")
           return valmsg
 
 
@@ -1322,10 +1323,10 @@ updateValue upd wref gport = do
 --- adjust the view to the end of the TextEdit widget.
 appendValue :: WidgetRef -> String -> GuiPort -> IO ()
 appendValue (WRefLabel var wtype) val gport =
-  if wtype/="textedit"
-  then trace ("WARNING: GUI.appendValue ignored for widget type \""++wtype++"\"\n") done
-  else send2tk (wRefname2Label var++" insert end \""++escapeTcl val++"\"") gport >>
-       send2tk (wRefname2Label var++" see end") gport
+  if wtype /= "textedit"
+    then doWarn $ "GUI.appendValue ignored for widget type '" ++ wtype ++ "'"
+    else send2tk (wRefname2Label var++" insert end \""++escapeTcl val++"\"") gport >>
+         send2tk (wRefname2Label var++" see end") gport
 
 --- Appends a String value with style tags to the contents of a TextEdit widget
 --- and adjust the view to the end of the TextEdit widget.
@@ -1336,11 +1337,11 @@ appendValue (WRefLabel var wtype) val gport =
 --- This is an experimental function and might be changed in the future.
 appendStyledValue :: WidgetRef -> String -> [Style] -> GuiPort -> IO ()
 appendStyledValue (WRefLabel var wtype) val styles gport =
-  if wtype/="textedit"
-   then trace ("WARNING: GUI.appendStyledValue ignored for widget type \""++wtype++"\"\n") done
-   else send2tk (wRefname2Label var++" insert end \""++escapeTcl val++"\""
-                 ++" \""++showStyles styles++"\"") gport >>
-        send2tk (wRefname2Label var++" see end") gport
+  if wtype /= "textedit"
+    then doWarn $ "GUI.appendStyledValue ignored for widget type '"++wtype++"'"
+    else send2tk (wRefname2Label var++" insert end \""++escapeTcl val++"\""
+                  ++" \""++showStyles styles++"\"") gport >>
+         send2tk (wRefname2Label var++" see end") gport
  where
   showStyles = foldr (\st s -> showStyle st ++ " " ++ s) ""
 
@@ -1356,10 +1357,10 @@ appendStyledValue (WRefLabel var wtype) val styles gport =
 addRegionStyle :: WidgetRef -> (Int,Int) -> (Int,Int) -> Style -> GuiPort
                -> IO ()
 addRegionStyle (WRefLabel var wtype) (l1,c1) (l2,c2) style gport =
-  if wtype/="textedit"
-  then trace ("WARNING: GUI.setRegionStyle ignored for widget type \""++wtype++"\"\n") done
-  else send2tk (wRefname2Label var++" tag add "++showStyle style++" "++
-                show l1++"."++show c1++" "++show l2++"."++show c2) gport
+  if wtype /= "textedit"
+    then doWarn $ "GUI.setRegionStyle ignored for widget type '" ++ wtype ++ "'"
+    else send2tk (wRefname2Label var++" tag add "++showStyle style++" "++
+                  show l1++"."++show c1++" "++show l2++"."++show c2) gport
 
 
 --- Removes a style value in a region of a TextEdit widget.
@@ -1370,9 +1371,9 @@ removeRegionStyle :: WidgetRef -> (Int,Int) -> (Int,Int) -> Style -> GuiPort
                   -> IO ()
 removeRegionStyle (WRefLabel var wtype) (l1,c1) (l2,c2) style gport =
   if wtype/="textedit"
-  then trace ("WARNING: GUI.setRegionStyle ignored for widget type \""++wtype++"\"\n") done
-  else send2tk (wRefname2Label var++" tag remove "++showStyle style++" "++
-                show l1++"."++show c1++" "++show l2++"."++show c2) gport
+    then doWarn $ "GUI.setRegionStyle ignored for widget type '" ++ wtype ++ "'"
+    else send2tk (wRefname2Label var++" tag remove "++showStyle style++" "++
+                  show l1++"."++show c1++" "++show l2++"."++show c2) gport
 
 
 --- Get the position (line,column) of the insertion cursor in a TextEdit
@@ -1393,9 +1394,10 @@ getCursorPosition (WRefLabel var wtype) gport =
 --- Lines are numbered from 1 and columns are numbered from 0.
 seeText :: WidgetRef -> (Int,Int) -> GuiPort -> IO ()
 seeText (WRefLabel var wtype) (line,column) gport =
-  if wtype/="textedit"
-  then trace ("WARNING: GUI.seeText ignored for widget type \""++wtype++"\"\n") done
-  else send2tk (wRefname2Label var++" see "++show line++"."++show column) gport
+  if wtype /= "textedit"
+    then doWarn $ "GUI.seeText ignored for widget type '" ++ wtype ++ "'"
+    else send2tk (wRefname2Label var++" see "++show line++"."++show column)
+                 gport
 
 
 --- Sets the input focus of this GUI to the widget referred by the first
@@ -1550,7 +1552,9 @@ chooseColor = do
 
 ----------------------------------------------------------------------------
 -- Auxiliaries:
-done :: IO ()
-done = return ()
+
+-- Trace a warning.
+doWarn :: String -> IO ()
+doWarn s = trace ("WARNING: " ++ s ++ "\n") (return ())
 
 -- end of GUI library

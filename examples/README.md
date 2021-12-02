@@ -1,12 +1,12 @@
 Examples for the GUI library `Graphics.UI`
 ==========================================
 
-* `hello.curry`: a simple "Hello world" GUI
-* `counter.curry`: a simple counter GUI
-* `temperature.curry`:
+* `Hello.curry`: a simple "Hello world" GUI
+* `Counter.curry`: a simple counter GUI
+* `Temperature.curry`:
   a converter from Celsius to Fahrenheit and Kelvin where the Celsius
-value of the temperature in Celsius is fixed by a slider
-* `calc.curry`:
+  value of the temperature in Celsius is fixed by a slider
+* `Calculator.curry`:
   a desk calculator showing the combination of GUIs with
   local state where the state is stored in an object
 * `checkbutton.curry`: a simple demo for the use of checkbuttons
@@ -18,10 +18,10 @@ value of the temperature in Celsius is fixed by a slider
   a demo (simple address database) to show widgets in a tabular
   orientation by exploiting the `Matrix`
   construct for widget composition
-* `hilbert.curry`:
+* `Hilbert.curry`:
   drawing a Hilbert curve in a canvas widget
-* `sierpinski.curry`: drawing a Sierpinski curve in a canvas widget
-* `fractal.curry`: drawing a fractal curve in a canvas widget
+* `Sierpinski.curry`: drawing a Sierpinski curve in a canvas widget
+* `Fractal.curry`: drawing a fractal curve in a canvas widget
 * `mail.curry`: a simple mail widget to write and send an email
 * `menu.curry`: a simple counter GUI to demonstrate the use of menu buttons
 * `radiotraffic.curry`:

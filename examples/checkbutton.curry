@@ -1,6 +1,6 @@
 -- a simple demo for checkbuttons in the GUI library
 
-import GUI
+import Graphics.UI
 
 checkbuttonWidget =
      Col [] [

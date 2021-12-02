@@ -1,7 +1,7 @@
 -- A simple GUI demonstrating the use of "appendValue"
 -- in TextEdit widgets:
 
-import GUI
+import Graphics.UI
 
 addlineGUI =
  Col [] [

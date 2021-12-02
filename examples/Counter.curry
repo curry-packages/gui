@@ -12,9 +12,10 @@ counterGUI =
    Row [] [Button (updateValue incrText val) [Text "Increment"],
            Button (setValue val "0")         [Text "Reset"],
            Button exitGUI                    [Text "Stop"]]]
-     where val free
+ where
+  val free
 
-           incrText s = show (read s + 1)
+  incrText s = show (read s + 1)
 
 main :: IO ()
 main = runGUI "Counter Demo" counterGUI

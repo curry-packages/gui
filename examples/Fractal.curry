@@ -49,10 +49,10 @@ draw p order diff (Figure s f1 f2 f3) =
                       s p (diff-3*h)  -- to avoid rounding problems
   where h = diff `div` 3
 
-draw_all p order diff = do draw p order diff fr
-                           draw p order diff fd
-                           draw p order diff fl
-                           draw p order diff fu
+drawAll p order diff = do draw p order diff fr
+                          draw p order diff fd
+                          draw p order diff fl
+                          draw p order diff fu
 
 fractalWidget =
   Col [] [
@@ -68,7 +68,7 @@ fractalWidget =
 
   drawFractal order gport = do
     pos <- newIORef (150,150)
-    draw_all (plotter pos gport cref (color order)) order 300
+    drawAll (plotter pos gport cref (color order)) order 300
  
   color order = if order==2 then "green" else
                 if order==3 then "blue"  else "red"

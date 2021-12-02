@@ -15,12 +15,12 @@ tempWidget =
     Button exitGUI [Text "Stop"]]
 
  where
-   cels,fahr,kelv free
+  cels,fahr,kelv free
 
-   convert wp = do cs <- getValue cels wp
-                   let c = read cs
-                   setValue fahr (show (c * 9 `div` 5 + 32)) wp
-                   setValue kelv (show (c + 273)) wp
+  convert wp = do cs <- getValue cels wp
+                  let c = read cs
+                  setValue fahr (show (c * 9 `div` 5 + 32)) wp
+                  setValue kelv (show (c + 273)) wp
 
 main :: IO ()
 main = runGUI "Temperature Conversion" tempWidget
@@ -41,19 +41,19 @@ tempWidget2 =
     Button exitGUI [Text "Stop"]]
 
  where
-   cels,fahr,kelv,fscl free
+  cels,fahr,kelv,fscl free
 
-   convertC wp = do cs <- getValue cels wp
-                    let c = read cs
-                    setValue fahr (show (c * 9 `div` 5 + 32)) wp
-                    setValue kelv (show (c + 273)) wp
-                    setValue fscl (show (c * 9 `div` 5 + 32)) wp
+  convertC wp = do cs <- getValue cels wp
+                   let c = read cs
+                   setValue fahr (show (c * 9 `div` 5 + 32)) wp
+                   setValue kelv (show (c + 273)) wp
+                   setValue fscl (show (c * 9 `div` 5 + 32)) wp
 
-   convertF wp = do fs <- getValue fscl wp
-                    let c = ((read fs)-32) * 5 `div` 9
-                    setValue cels (show c) wp
-                    setValue fahr (show (c * 9 `div` 5 + 32)) wp
-                    setValue kelv (show (c + 273)) wp
+  convertF wp = do fs <- getValue fscl wp
+                   let c = ((read fs)-32) * 5 `div` 9
+                   setValue cels (show c) wp
+                   setValue fahr (show (c * 9 `div` 5 + 32)) wp
+                   setValue kelv (show (c + 273)) wp
 
 main2 :: IO ()
 main2 = runGUI "Temperature Conversion" tempWidget2

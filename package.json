@@ -13,7 +13,7 @@
     "license": "BSD-3-Clause",
     "licenseFile": "LICENSE",
     "source": {
-        "git": "https://git.ps.informatik.uni-kiel.de/curry-packages/gui.git",
+        "git": "https://github.com/curry-packages/gui.git",
         "tag": "$version"
     }
 }

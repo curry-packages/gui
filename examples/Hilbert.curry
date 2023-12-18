@@ -22,6 +22,7 @@ plotter pos gport wref color (tx,ty) = do
 h :: Int
 h = 5
 
+left, right, up, down :: ((Int,Int) -> a) -> a
 left  p = p (-h,0)
 right p = p (h,0)
 up    p = p (0,-h)
@@ -32,7 +33,7 @@ data FigureType stroketype = Figure (FigureType stroketype) stroketype
                                     (FigureType stroketype) stroketype
                                     (FigureType stroketype)
 
-
+fa, fb, fc, fd :: FigureType (((Int,Int) -> a) -> a)
 fa = Figure fd left  fa down  fa right fb
 fb = Figure fc up    fb right fb down  fa
 fc = Figure fb right fc up    fc left  fd

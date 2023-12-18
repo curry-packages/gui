@@ -18,13 +18,16 @@ plotter pos gport wref color (tx,ty) = do
 
 ---------------------------------------------------------------------
 -- drawing Sierpinski curves:
-h=3
+h :: Int
+h = 3
 
+left2, right2, up2, down2 :: ((Int,Int) -> a) -> a
 left2  p = p (-(2*h),0)
 right2 p = p (2*h,0)
 up2    p = p (0,-(2*h))
 down2  p = p (0,2*h)
 
+leftdown, rightdown, leftup, rightup :: ((Int,Int) -> a) -> a
 leftdown  p = p (-h,h)
 rightdown p = p (h,h)
 leftup    p = p (-h,-h)
@@ -37,6 +40,7 @@ data FigureType stroketype = Figure (FigureType stroketype) stroketype
                                     (FigureType stroketype)
 
 
+drawSierpinski :: a -> Int -> FigureType (a -> IO ()) -> IO ()
 drawSierpinski p order (Figure f1 s1 f2 s2 f3 s3 f4) =
   if order==0
     then return ()
@@ -46,6 +50,7 @@ drawSierpinski p order (Figure f1 s1 f2 s2 f3 s3 f4) =
          drawSierpinski p (order -1) f4
 
 
+fa, fb, fc, fd, fs :: FigureType (((Int,Int) -> a) -> a)
 fa = Figure fa rightdown fb right2 fd rightup   fa
 fb = Figure fb leftdown  fc down2  fa rightdown fb
 fc = Figure fc leftup    fd left2  fb leftdown  fc
@@ -53,6 +58,7 @@ fd = Figure fd rightup   fa up2    fc leftup    fd
 
 fs = Figure fa rightdown fb leftdown fc leftup fd -- rightup
 
+sierpinskiWidget :: Widget
 sierpinskiWidget =
   Col [] [
     Label [Text "Drawing a Sierpinski curve", WRef lt, Background "red"],
@@ -69,5 +75,6 @@ sierpinskiWidget =
      drawSierpinski p o fs
      rightup p
 
+main :: IO ()
 main = runGUI "Sierpinski Demo" sierpinskiWidget
 

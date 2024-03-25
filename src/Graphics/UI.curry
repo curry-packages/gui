@@ -7,6 +7,7 @@
 --- @authors Michael Hanus, Bernd Brassel
 --- @version November 2020
 ------------------------------------------------------------------------------
+{-# OPTIONS_FRONTEND --case-mode=free #-}
 
 module Graphics.UI
   ( GuiPort, Widget(..), Button, ConfigButton

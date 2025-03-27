@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------------
 --- This library contains definitions and functions to implement
 --- graphical user interfaces for Curry programs.
---- It is based on Tcl/Tk and its basic ideas are described in detail
---- [in this paper](http://www.informatik.uni-kiel.de/~mh/papers/PADL00.html)
+--- It is based on Tcl/Tk and its basic ideas are described in detail in the
+--- [PADL 2000 paper](https://doi.org/10.1007/3-540-46584-7_4).
 ---
 --- @authors Michael Hanus, Bernd Brassel
 --- @version November 2020
